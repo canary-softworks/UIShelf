@@ -1,0 +1,15 @@
+{
+  "name": "UIShelf",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Packages": {
+        "$path": "Packages",
+        "UIShelf": {
+          "$path": "src"
+        }
+      }
+    }
+  }
+}
