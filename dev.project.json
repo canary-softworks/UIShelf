@@ -1,5 +1,6 @@
 {
-  "name": "UIShelf",
+  "emitLegacyScripts": false,
+  "name": "uishelf-dev",
   "tree": {
     "$className": "DataModel",
 
@@ -9,6 +10,9 @@
         "UIShelf": {
           "$path": "src"
         }
+      },
+      "Tests": {
+        "$path": "tests/client"
       }
     }
   }

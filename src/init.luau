@@ -143,14 +143,15 @@ type IconProps = {
 	Name: string,
 	Image: string | number?,
 	Order: number,
-	Area: number?,
+	Area: number,
 	Text: string?,
+	Font: Font | Enum.Font?,
 }
 
 type SpacerProps = {
 	Name: string,
 	Order: number,
-	Area: number?,
+	Area: number,
 }
 
 type MenuItemProps = {
@@ -226,8 +227,12 @@ function UIShelf.CreateIcon(properties: IconProps)
 	for name, value in properties do
 		self[name] = value
 	end
+
+	IconBackground.Activated:Connect(function(inputObject)
+		self.Activated:Fire(inputObject.UserInputType)
+	end)
 	
-	self:SetText(properties.Text)
+	self:SetText(properties.Text, properties.Font)
 	self:SetImage(properties.Image)
 
 	for connection, state in EVENTS_FOR_CONNECTION_ICON do
@@ -299,7 +304,7 @@ function TopBarIconObject:BindGuiObject(guiObject: GuiObject?)
 	end
 end
 
-function TopBarIconObject:SetText(text: string?)
+function TopBarIconObject:SetText(text: string?, textFont: Enum.Font | Font?)
 	local IconBackground = self._Element.Background
 	local IconText = IconBackground.Text
 	
@@ -314,8 +319,13 @@ function TopBarIconObject:SetText(text: string?)
 	end
 	
 	self.TextEnabled = true
+	
 	IconBackground.Text.Visible = true
 	IconBackground.Text.Text = text
+
+	if textFont then
+		IconBackground.Text.FontFace = if typeof(textFont) == "Font" then textFont else Font.fromEnum(textFont)
+	end
 
 	if not self.ImageEnabled then
 		self.ImageEnabled = false
@@ -504,14 +514,6 @@ function TopBarIconObject:UpdateStateOverlay(newState: "Default" | "Hovering" | 
 		IconStateOverlay.Transparency = 0.7
 		IconStateOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		return
-	end
-
-	if newState == "MouseUpHovering" then
-		if UserInputService.MouseEnabled then
-			self.Activated:Fire(Enum.UserInputType.MouseButton1)
-		elseif UserInputService.TouchEnabled then
-			self.Activated:Fire(Enum.UserInputType.Touch)
-		end
 	end
 
 	for property, value in STATEOVERLAY_PROPERTIES[newState] do
