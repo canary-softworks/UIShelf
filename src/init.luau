@@ -658,7 +658,9 @@ function TopBarIconObject:SetImageSize(imageSize: Vector2)
 end
 
 function TopBarIconObject:Destroy()
-	self._KeyCodeConnection:Disconnect()
+	if self._KeyCodeConnection then
+		self._KeyCodeConnection:Disconnect()
+	end
 
 	if self._NoticeConnection then
 		self._NoticeConnection:Disconnect()
