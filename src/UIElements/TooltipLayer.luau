@@ -4,5 +4,6 @@ TooltipLayer.DisplayOrder = 1e+09
 TooltipLayer.IgnoreGuiInset = true
 TooltipLayer.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 TooltipLayer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+TooltipLayer.ResetOnSpawn = false
 
 return TooltipLayer
