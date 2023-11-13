@@ -408,7 +408,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 	local TOOLTIP_POSITION = TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2)
 	local SHADOW_SIZE = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, self._Tooltip.Box.AbsoluteSize.Y + 8)
 
-	IconTooltipElement.Position = UDim2.fromOffset(TOOLTIP_POSITION, 60)
+	IconTooltipElement.Position = UDim2.fromOffset(TOOLTIP_POSITION, 56)
 	IconTooltipElement.Size = UDim2.fromOffset(SHADOW_SIZE, 53)
 	IconTooltipElement.DropShadow.Size = SHADOW_SIZE
 
@@ -423,7 +423,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 			ConnectionDebounce = true
 
 			task.wait(0.25)
-			IconTooltipElement.Position = UDim2.fromOffset(TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2), 60)
+			IconTooltipElement.Position = UDim2.fromOffset(TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2), 56)
 			ConnectionDebounce = false
 		end)
 	end
