@@ -1,3 +1,5 @@
+--!strict
+
 local UIShelf = { }
 local TopBarIconObject = { }
 local TopBarSpacerObject = { }
@@ -224,7 +226,7 @@ function UIShelf.CreateIcon(properties: IconProps)
 		properties.Order = -properties.Order
 	end
 
-	for name, value in properties do
+	for name, value in properties :: any do
 		self[name] = value
 	end
 
@@ -235,7 +237,7 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self:SetText(properties.Text, properties.Font)
 	self:SetImage(properties.Image)
 
-	for connection, state in EVENTS_FOR_CONNECTION_ICON do
+	for connection, state in EVENTS_FOR_CONNECTION_ICON :: any do
 		IconBackground[connection]:Connect(function()
 			self:UpdateStateOverlay(state)
 		end)
@@ -397,6 +399,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 
 	local IconTooltipElement = self._Tooltip
 	local TooltipHeader = IconTooltipElement.Box.Header
+	local TooltipCaret = IconTooltipElement.Caret
 	local TopBarIcon = self._Element
 
 	if TooltipHeader.Text == text then
@@ -409,8 +412,10 @@ function TopBarIconObject:SetTooltip(text: string?)
 	local SHADOW_SIZE = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, self._Tooltip.Box.AbsoluteSize.Y + 8)
 
 	IconTooltipElement.Position = UDim2.fromOffset(TOOLTIP_POSITION, 56)
-	IconTooltipElement.Size = UDim2.fromOffset(SHADOW_SIZE, 53)
+	IconTooltipElement.Size = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, 53)
 	IconTooltipElement.DropShadow.Size = SHADOW_SIZE
+
+	TooltipCaret.Position = UDim2.new(0.5, 0, 0, 4)
 
 	if not self._TooltipConnection then
 		local ConnectionDebounce = false
@@ -469,7 +474,7 @@ function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuIte
 		local MenuObjectLabel = MenuObjectClone.StyledTextLabel
 		local MenuObjectIcon = MenuObjectClone.IconHost.IntegrationIconFrame.IntegrationIcon
 
-		for connection, state in EVENTS_FOR_CONNECTION_MENU do
+		for connection, state in EVENTS_FOR_CONNECTION_MENU :: any do
 			MenuObjectClone[connection]:Connect(function()
 				if connection == "MouseButton1Up" then
 					MenuContainer.Visible = false
@@ -500,9 +505,11 @@ function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuIte
 	end)
 end
 
-function TopBarIconObject:_UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: ImageButton)
+function TopBarIconObject:_UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
 	for property, value in STATEOVERLAY_MENU_PROPERTIES[newState] do
-		button[property] = value
+		if button[property] then
+			button[property] = value
+		end
 	end
 end
 
@@ -532,16 +539,20 @@ function TopBarIconObject:SetImageRect(rectSize: Rect, rectOffset: Rect)
 end
 
 function TopBarIconObject:AddIconNotices(notices: number?, noticeCap: number?)
-	notices = notices or 1
 	noticeCap = noticeCap or 99
+	notices = notices or 1
 
-	if notices <= 0 then
+	if notices and notices <= 0 then
 		error("Cannot notify 0 notifications")
 		return
 	end
 
 	local TopBarIcon = self._Element
 	local BadgeContainer = TopBarIcon.BadgeContainer
+	
+	if not TopbarIcon:GetAttribute("Notices") then
+		TopbarIcon:SetAttribute("Notices", 0)
+	end
 
 	if not BadgeContainer:FindFirstChild("Badge") then
 		local TopbarIconBadgeClone = TopbarIconBadge:Clone()
