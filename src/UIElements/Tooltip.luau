@@ -4,7 +4,7 @@ Tooltip.AnchorPoint = Vector2.new(0.5, 0)
 Tooltip.AutomaticSize = Enum.AutomaticSize.XY
 Tooltip.BackgroundTransparency = 1
 Tooltip.BorderSizePixel = 0
-Tooltip.Position = UDim2.fromOffset(22, 50)
+Tooltip.Position = UDim2.fromOffset(0, 0)
 Tooltip.Size = UDim2.fromOffset(32, 53)
 Tooltip.Visible = false
 
@@ -63,8 +63,11 @@ Hotkeys.Visible = false
 local Layout1 = Instance.new("UIListLayout")
 Layout1.Name = "Layout"
 Layout1.Padding = UDim.new(0, 6)
-Layout1.FillDirection = Enum.FillDirection.Horizontal
+Layout1.FillDirection = Enum.FillDirection.Vertical
 Layout1.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout1.HorizontalFlex = Enum.UIFlexAlignment.None
+Layout1.ItemLineAlignment = Enum.ItemLineAlignment.Automatic
+Layout1.VerticalFlex = Enum.UIFlexAlignment.None
 Layout1.SortOrder = Enum.SortOrder.LayoutOrder
 Layout1.Parent = Hotkeys
 

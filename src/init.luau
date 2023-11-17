@@ -22,6 +22,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local UIElements = script.UIElements
+local CurrentCamera = workspace.CurrentCamera
 
 local Player = PlayerService.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
@@ -188,6 +189,7 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self._Tooltip = nil
 	self._TooltipTweens = nil
 	self.TooltipText = ""
+	self.IsTooltipFarRight = false
 	
 	self.Name = nil
 	self.Image = nil
@@ -415,7 +417,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 	IconTooltipElement.Size = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, 53)
 	IconTooltipElement.DropShadow.Size = SHADOW_SIZE
 
-	TooltipCaret.Position = UDim2.new(0.5, 0, 0, 4)
+	TooltipCaret.Position = UDim2.fromOffset(TOOLTIP_POSITION - IconTooltipElement.AbsolutePosition.X, 4)
 
 	if not self._TooltipConnection then
 		local ConnectionDebounce = false
@@ -427,10 +429,33 @@ function TopBarIconObject:SetTooltip(text: string?)
 
 			ConnectionDebounce = true
 
+			if self.IsTooltipFarRight then
+				IconTooltipElement.Position = UDim2.fromOffset(
+					CurrentCamera.ViewportSize.X - 8 - (IconTooltipElement.Box.AbsoluteSize.X / 2), 56
+				)
+				
+				task.wait(0.25)
+				ConnectionDebounce = false
+				return
+			end
+
 			task.wait(0.25)
+
 			IconTooltipElement.Position = UDim2.fromOffset(TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2), 56)
 			ConnectionDebounce = false
 		end)
+	end
+
+	if self.Area == UIShelf.HorizontalAlignment.Right and self._Element.LayoutOrder == -1 then
+		self.IsTooltipFarRight = true
+
+		TooltipCaret.Position = UDim2.fromOffset(
+			IconTooltipElement.Box.AbsoluteSize.X - 22, 4
+		)
+
+		IconTooltipElement.Position = UDim2.fromOffset(
+			CurrentCamera.ViewportSize.X - 8 - (IconTooltipElement.Box.AbsoluteSize.X / 2), 56
+		)
 	end
 end
 
@@ -642,9 +667,10 @@ function TopBarIconObject:BindKeyCode(keyCode: Enum.KeyCode?)
 	if self._Tooltip then
 		local HotKeyFrame = self._Tooltip.Box.Hotkeys
 		local FirstHotKey = HotKeyFrame["1"]
+		local KeyCodeName = if keyCode.Name == "Escape" then "Esc" else keyCode.Name
 		
 		HotKeyFrame.Visible = true
-		FirstHotKey.LabelContent.Text = keyCode.Name
+		FirstHotKey.LabelContent.Text = KeyCodeName
 
 		local SHADOW_SIZE = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, self._Tooltip.Box.AbsoluteSize.Y + 8)
 		self._Tooltip.DropShadow.Size = SHADOW_SIZE

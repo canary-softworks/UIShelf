@@ -22,7 +22,7 @@ local Icon3 = UIShelf.CreateIcon({
 	Text = "Text Icon"
 })
 
-local Icon4 = UIShelf.CreateIcon({
+UIShelf.CreateIcon({
 	Name = "Icon4",
 	Order = 3,
 	Area = UIShelf.HorizontalAlignment.Left,
@@ -30,7 +30,7 @@ local Icon4 = UIShelf.CreateIcon({
 	Font = Enum.Font.Creepster
 })
 
-Icon3:SetTooltip("Example Tooltip w/ Keybind")
+Icon3:SetTooltip("extremely long tooltip lololololololololololololololololololololoolllololololololololololololololol")
 Icon3:BindKeyCode(Enum.KeyCode.Q)
 Icon1:SetTooltip("Normal Tooltip")
 
@@ -48,6 +48,8 @@ Icon2:CreateMenu({
 	Menu1,
 	Menu2
 })
+
+Icon2:SetTooltip("skibidi toilet yes yes yes")
 
 Menu1.Activated:Connect(function()
 	print("Menu example!")
