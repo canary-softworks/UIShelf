@@ -30,7 +30,7 @@ UIShelf.CreateIcon({
 	Font = Enum.Font.Creepster
 })
 
-Icon3:SetTooltip("extremely long tooltip lololololololololololololololololololololoolllololololololololololololololol")
+Icon3:SetTooltip("Tooltip w/ Keycode")
 Icon3:BindKeyCode(Enum.KeyCode.Q)
 Icon1:SetTooltip("Normal Tooltip")
 
@@ -49,7 +49,7 @@ Icon2:CreateMenu({
 	Menu2
 })
 
-Icon2:SetTooltip("skibidi toilet yes yes yes")
+Icon2:SetTooltip("Automatically Offsetted Tooltip")
 
 Menu1.Activated:Connect(function()
 	print("Menu example!")
