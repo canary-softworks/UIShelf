@@ -4,6 +4,7 @@ Tooltip.AnchorPoint = Vector2.new(0.5, 0)
 Tooltip.AutomaticSize = Enum.AutomaticSize.XY
 Tooltip.BackgroundTransparency = 1
 Tooltip.BorderSizePixel = 0
+Tooltip.GroupTransparency = 1
 Tooltip.Position = UDim2.fromOffset(0, 0)
 Tooltip.Size = UDim2.fromOffset(32, 53)
 Tooltip.Visible = false

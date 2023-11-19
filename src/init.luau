@@ -122,6 +122,17 @@ local _EVENTS_FOR_CONNECTION_UNIBAR = {
 	MouseLeave = "Default",
 }
 
+local DISALLOWED_NAMES = {
+	"LeftFrame",
+	"RightFrame",
+	"Layout"
+}
+
+local KEYCODE_TRANSLATIONS = {
+	[Enum.KeyCode.Escape] = "Esc",
+	[Enum.KeyCode.Backquote] = "`",
+}
+
 local DEFAULT_ICON_SIZE_UDIM = UDim2.fromOffset(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE)
 
 local DEFAULT_PADDING_SIZE_LEFT_UDIM,
@@ -189,7 +200,6 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self._Tooltip = nil
 	self._TooltipTweens = nil
 	self.TooltipText = ""
-	self.IsTooltipFarRight = false
 	
 	self.Name = nil
 	self.Image = nil
@@ -215,6 +225,7 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self._TooltipConnection = nil
 	self._GuiBindConnection = nil
 	self._SizeConnection = nil
+	self._PositionConnection = nil
 	
 	if type(properties.Image) == "number" then
 		properties.Image = `rbxassetid://{properties.Image}`
@@ -269,9 +280,15 @@ function UIShelf.CreateIcon(properties: IconProps)
 	end)
 
 	if self.Area == 1 then
+		assert(not LeftFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon names in left frame")
 		IconClone.Parent = LeftFrame
 	elseif self.Area == 2 then
+		assert(not RightFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon names in right frame")
 		IconClone.Parent = RightFrame
+	end
+
+	if table.find(DISALLOWED_NAMES, properties.Name) then
+		error(`{properties.Name} is part of the reserved naming list`)
 	end
 
 	IconClone:SetAttribute("Notices", 0)
@@ -409,6 +426,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 	end
 
 	TooltipHeader.Text = text
+	IconTooltipElement.Name = self.Name
 
 	local TOOLTIP_POSITION = TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2)
 	local SHADOW_SIZE = UDim2.fromOffset(self._Tooltip.Box.AbsoluteSize.X + 8, self._Tooltip.Box.AbsoluteSize.Y + 8)
@@ -419,36 +437,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 
 	TooltipCaret.Position = UDim2.fromOffset(TOOLTIP_POSITION - IconTooltipElement.AbsolutePosition.X, 4)
 
-	if not self._TooltipConnection then
-		local ConnectionDebounce = false
-
-		self._TooltipConnection = GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(function()
-			if ConnectionDebounce then
-				return
-			end
-
-			ConnectionDebounce = true
-
-			if self.IsTooltipFarRight then
-				IconTooltipElement.Position = UDim2.fromOffset(
-					CurrentCamera.ViewportSize.X - 8 - (IconTooltipElement.Box.AbsoluteSize.X / 2), 56
-				)
-				
-				task.wait(0.25)
-				ConnectionDebounce = false
-				return
-			end
-
-			task.wait(0.25)
-
-			IconTooltipElement.Position = UDim2.fromOffset(TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2), 56)
-			ConnectionDebounce = false
-		end)
-	end
-
-	if self.Area == UIShelf.HorizontalAlignment.Right and self._Element.LayoutOrder == -1 then
-		self.IsTooltipFarRight = true
-
+	if self.Area == UIShelf.HorizontalAlignment.Right and self._Element.LayoutOrder <= -1 then
 		TooltipCaret.Position = UDim2.fromOffset(
 			IconTooltipElement.Box.AbsoluteSize.X - 22, 4
 		)
@@ -456,14 +445,23 @@ function TopBarIconObject:SetTooltip(text: string?)
 		IconTooltipElement.Position = UDim2.fromOffset(
 			CurrentCamera.ViewportSize.X - 8 - (IconTooltipElement.Box.AbsoluteSize.X / 2), 56
 		)
+		
+		UpdateTopbar()
+		return
 	end
+
+	self._PositionConnection = self._Element:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+		IconTooltipElement.Position = UDim2.fromOffset(
+			TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2),
+		 	if IconTooltipElement.Visible then 60 else 56
+		)
+	end)
+
+	UpdateTopbar()
 end
 
 function TopBarIconObject:SetTooltipEnabled(enabled: boolean)
-	if not self._Tooltip then
-		error("Icon must already have a tooltip set")
-		return
-	end
+	assert(self._Tooltip, "Icon must already have a tooltip set")
 
 	self._Tooltip:TweenPosition(
 		UDim2.fromOffset(self._Tooltip.Position.X.Offset, if enabled then 60 else 56),
@@ -506,7 +504,7 @@ function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuIte
 					menuContents.Activated:Fire()
 				end
 
-				self:_UpdateStateOverlayMenu(state, MenuObjectClone)
+				self:UpdateStateOverlayMenu(state, MenuObjectClone)
 			end)
 		end
 
@@ -530,7 +528,7 @@ function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuIte
 	end)
 end
 
-function TopBarIconObject:_UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
+function TopBarIconObject:UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
 	for property, value in STATEOVERLAY_MENU_PROPERTIES[newState] do
 		if button[property] then
 			button[property] = value
@@ -667,7 +665,7 @@ function TopBarIconObject:BindKeyCode(keyCode: Enum.KeyCode?)
 	if self._Tooltip then
 		local HotKeyFrame = self._Tooltip.Box.Hotkeys
 		local FirstHotKey = HotKeyFrame["1"]
-		local KeyCodeName = if keyCode.Name == "Escape" then "Esc" else keyCode.Name
+		local KeyCodeName = if KEYCODE_TRANSLATIONS[keyCode] then KEYCODE_TRANSLATIONS[keyCode] else keyCode.Name
 		
 		HotKeyFrame.Visible = true
 		FirstHotKey.LabelContent.Text = KeyCodeName
@@ -789,10 +787,12 @@ end
 
 GuiService.MenuOpened:Connect(function()
 	TopbarScreenGui.Enabled = false
+	TooltipScreenGui.Enabled = false
 end)
 
 GuiService.MenuClosed:Connect(function()
 	TopbarScreenGui.Enabled = UIShelf.TopBarEnabled
+	TooltipScreenGui.Enabled = UIShelf.TopBarEnabled
 end)
 
 GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(UpdateTopbar)
