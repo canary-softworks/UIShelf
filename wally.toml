@@ -1,5 +1,6 @@
 [package]
 name = "canary-development/uishelf"
+description = "Create modern & intuitive topbar icons."
 version = "1.1.5"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
