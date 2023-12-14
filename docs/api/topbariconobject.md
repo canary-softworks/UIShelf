@@ -108,6 +108,20 @@ The key codes to listen to, if it is nil it will unbind all binded key codes
 
 ---
 
+### SetImage
+
+Sets the image of the icon.
+
+**Parameters**
+
+* **image:** `string` | `number?`\
+
+**Returns**
+
+* **void**
+
+---
+
 ### SetImageSize
 
 Sets the image size of the icon, default is filled.
