@@ -93,7 +93,7 @@ The amount of notices to remove, leave nil to remove all notices
 
 ---
 
-### BindKeyCodes
+### BindKeyCode
 
 Binds multiple key codes to activate the icons `Activated` event.
 
