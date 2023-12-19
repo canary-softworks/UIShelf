@@ -93,7 +93,7 @@ The amount of notices to remove, leave nil to remove all notices
 
 ---
 
-### BindKeyCodes
+### BindKeyCode
 
 Binds multiple key codes to activate the icons `Activated` event.
 
@@ -101,6 +101,20 @@ Binds multiple key codes to activate the icons `Activated` event.
 
 * **keyCodes:** `{ Enum.KeyCode }?`\
 The key codes to listen to, if it is nil it will unbind all binded key codes
+
+**Returns**
+
+* **void**
+
+---
+
+### SetImage
+
+Sets the image of the icon.
+
+**Parameters**
+
+* **image:** `string` | `number?`\
 
 **Returns**
 
