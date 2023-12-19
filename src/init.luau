@@ -21,6 +21,8 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+assert(RunService:IsClient(), "UI can only be handled on the client")
+
 local UIElements = script.UIElements
 local CurrentCamera = workspace.CurrentCamera
 
@@ -84,21 +86,6 @@ local STATEOVERLAY_MENU_PROPERTIES = {
 	},
 }
 
-local _STATEOVERLAY_UNIBAR_PROPERTIES = {
-	Default = {
-		BackgroundTransparency = 1,
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	},
-	Hovering = {
-		BackgroundTransparency = 0.9,
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	},
-	Open = {
-		BackgroundTransparency = 0.9,
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	}
-}
-
 local EVENTS_FOR_CONNECTION_ICON = {
 	MouseButton1Up = "MouseUpHovering",
 	MouseButton1Down = "MouseDown",
@@ -111,13 +98,6 @@ local EVENTS_FOR_CONNECTION_ICON = {
 local EVENTS_FOR_CONNECTION_MENU = {
 	MouseButton1Up = "Hovering",
 	MouseButton1Down = "MouseDown",
-	MouseEnter = "Hovering",
-	MouseLeave = "Default",
-}
-
-local _EVENTS_FOR_CONNECTION_UNIBAR = {
-	MouseButton1Up = "Hovering",
-	MouseButton1Down = "Hovering",
 	MouseEnter = "Hovering",
 	MouseLeave = "Default",
 }
@@ -142,6 +122,21 @@ local NOIMAGE_PADDING_SIZE_LEFT_UDIM,
 NOIMAGE_PADDING_SIZE_RIGHT_UDIM = UDim.new(0, 12), UDim.new(0, 12)
 
 local NOIMAGE_ICON_SIZE_UDIM = UDim2.fromOffset(0, DEFAULT_ICON_SIZE)
+
+local INITIAL_TOPBAR_INSET = GuiService:GetGuiInset()
+local BUTTON_OFFSET = INITIAL_TOPBAR_INSET.Y - (44 + 2)
+
+for _, object in TopbarScreenGui:GetDescendants() do
+	if object:IsA("UIListLayout") then
+		object.Padding = UDim.new(0, BUTTON_OFFSET)
+	end
+end
+
+if BUTTON_OFFSET == 6 then
+	local NewNegativePadding = Instance.new("UIPadding")
+	NewNegativePadding.PaddingLeft = UDim.new(0, -6)
+	NewNegativePadding.Parent = TopbarScreenGui.TopBarFrame.LeftFrame
+end
 
 UIShelf.HorizontalAlignment = {
 	Left = 1,
@@ -172,8 +167,6 @@ type MenuItemProps = {
 	Name: string,
 	Image: string | number,
 }
-
-assert(RunService:IsClient(), "UI can only be handled on the client")
 
 -- // Functions
 
@@ -218,13 +211,13 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self.Notices = 0
 	self.NoticeCap = "99+"
 	self.NoticeCapNum = 99
+
 	self.CurrentState = "Default"
 
 	self._KeyCodeConnection = nil
 	self._NoticeConnection = nil
 	self._TooltipConnection = nil
 	self._GuiBindConnection = nil
-	self._SizeConnection = nil
 	self._PositionConnection = nil
 	
 	if type(properties.Image) == "number" then
@@ -274,16 +267,12 @@ function UIShelf.CreateIcon(properties: IconProps)
 			self:SetTooltipEnabled(true)
 		end
 	end)
-	
-	self._SizeConnection = IconBackground:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		IconClone.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
-	end)
 
 	if self.Area == 1 then
-		assert(not LeftFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon names in left frame")
+		assert(not LeftFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon/unibar names in left frame")
 		IconClone.Parent = LeftFrame
 	elseif self.Area == 2 then
-		assert(not RightFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon names in right frame")
+		assert(not RightFrame:FindFirstChild(properties.Name), "Cannot have duplicate icon/unibar names in right frame")
 		IconClone.Parent = RightFrame
 	end
 
@@ -299,6 +288,8 @@ function UIShelf.CreateIcon(properties: IconProps)
 	if properties.Image then
 		IconImage.Image = properties.Image
 	end
+
+	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 
 	return self
 end
@@ -336,6 +327,7 @@ function TopBarIconObject:SetText(text: string?, textFont: Enum.Font | Font?)
 			
 		UpdateTopbar()
 		self.TextEnabled = false
+		self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 		return
 	end
 	
@@ -356,6 +348,7 @@ function TopBarIconObject:SetText(text: string?, textFont: Enum.Font | Font?)
 	end
 
 	UpdateTopbar()
+	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 end
 
 function TopBarIconObject:SetImage(image: string | number?)
@@ -373,6 +366,7 @@ function TopBarIconObject:SetImage(image: string | number?)
 		IconBackground.Size = NOIMAGE_ICON_SIZE_UDIM
 		UpdateTopbar()
 		self.ImageEnabled = false
+		self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 		return
 	end
 	
@@ -387,6 +381,7 @@ function TopBarIconObject:SetImage(image: string | number?)
 	IconBackground.Size = DEFAULT_ICON_SIZE_UDIM
 	
 	UpdateTopbar()
+	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 end
 
 function TopBarIconObject:SetTooltip(text: string?)
@@ -537,7 +532,12 @@ function TopBarIconObject:UpdateStateOverlayMenu(newState: "Default" | "Hovering
 end
 
 function TopBarIconObject:UpdateStateOverlay(newState: "Default" | "Hovering" | "MouseDown" | "MouseUpHovering")
-	local IconBackground = self._Element.Background
+	local IconBackground = self._Element:FindFirstChild("Background")
+	
+	if not IconBackground then
+		return
+	end
+
 	local IconStateOverlay = IconBackground.StateOverlayRound
 
 	if newState == "Hovering" and UserInputService.TouchEnabled then
