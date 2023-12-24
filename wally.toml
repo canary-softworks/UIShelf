@@ -1,7 +1,7 @@
 [package]
 name = "canary-development/uishelf"
 description = "Create modern & intuitive topbar icons."
-version = "1.1.6"
+version = "1.1.7"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MIT"
@@ -16,4 +16,4 @@ include = [
 ]
 
 [dependencies]
-Signal = "red-blox/signal@^1.0.0"
+Signal = "red-blox/signal@^2.0.0"
