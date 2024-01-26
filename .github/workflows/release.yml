@@ -1,0 +1,45 @@
+name: Build/Release Version
+on:
+    push:
+        tags:
+            - 'v*'
+
+jobs:
+    build:
+        name: New Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - name: Setup aftman
+              uses: ok-nick/setup-aftman@v0.4.2
+            
+            - name: Install Wally dependencies
+              run: |
+                wally install
+
+            - name: Build standalone
+              run: |
+                rojo build standalone.project.json --o build/standalone.rbxm
+
+            - name: Create release
+              id: create_release
+              uses: actions/create-release@v1
+              with:
+                tag_name: ${{ github.ref }}
+                release_name: ${{ github.ref }}
+                draft: true
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload release assets
+              id: upload-release-assets
+              uses: actions/upload-release-asset@v1
+              with:
+                upload_url: ${{ steps.create_release.outputs.upload_url }}
+                asset_path: build/standalone.rbxm
+                asset_name: StandalonePackage.rbxm
+                asset_content_type: application/octet-stream
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

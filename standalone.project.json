@@ -1,0 +1,7 @@
+{
+    "name": "standalone-build",
+    "tree": {
+        "$path": "Packages",
+        "UIShelf": {"$path": "src"}
+    }
+}
