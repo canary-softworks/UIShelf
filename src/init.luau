@@ -1,16 +1,11 @@
---!strict
-
 local UIShelf = { }
-local TopBarIconObject = { }
-local TopBarSpacerObject = { }
-local TopBarUnibarObject = { }
+local Icon = { }
+local Spacer = { }
 
 -- // Variables
 
-TopBarSpacerObject.__index = TopBarSpacerObject
-TopBarIconObject.__index = TopBarIconObject
-TopBarUnibarObject.__index = TopBarUnibarObject
-UIShelf.__index = UIShelf
+Spacer.__index = Spacer
+Icon.__index = Icon
 
 UIShelf.CreatedIcons = { }
 UIShelf.TopBarEnabled = true
@@ -53,21 +48,17 @@ local NOTICE_UI_MARGIN_24X24 = 0
 local DEFAULT_ICON_SIZE = 44
 
 local STATEOVERLAY_PROPERTIES = {
-	Default = {
+	[Enum.GuiState.Idle] = {
 		BackgroundTransparency = 1,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 	},
-	Hovering = {
+	[Enum.GuiState.Hover] = {
 		BackgroundTransparency = 0.9,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 	},
-	MouseDown = {
+	[Enum.GuiState.Press] = {
 		BackgroundTransparency = 0.7,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-	},
-	MouseUpHovering = {
-		BackgroundTransparency = 0.9,
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 	},
 }
 
@@ -84,15 +75,6 @@ local STATEOVERLAY_MENU_PROPERTIES = {
 		BackgroundTransparency = 0.7,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 	},
-}
-
-local EVENTS_FOR_CONNECTION_ICON = {
-	MouseButton1Up = "MouseUpHovering",
-	MouseButton1Down = "MouseDown",
-	MouseEnter = "Hovering",
-	MouseLeave = "Default",
-	SelectionGained = "Hovering",
-	SelectionLost = "Default",
 }
 
 local EVENTS_FOR_CONNECTION_MENU = {
@@ -126,19 +108,21 @@ local NOIMAGE_ICON_SIZE_UDIM = UDim2.fromOffset(0, DEFAULT_ICON_SIZE)
 local INITIAL_TOPBAR_INSET = GuiService:GetGuiInset()
 local BUTTON_OFFSET = INITIAL_TOPBAR_INSET.Y - (44 + 2)
 
+local CurrentlyOpenMenu = {Button = nil, Menu = nil}
+
 for _, object in TopbarScreenGui:GetDescendants() do
 	if object:IsA("UIListLayout") then
 		object.Padding = UDim.new(0, BUTTON_OFFSET)
 	end
 end
 
-if BUTTON_OFFSET == 6 then
+if BUTTON_OFFSET == 6 and INITIAL_TOPBAR_INSET.Y > 36 then
 	local NewNegativePadding = Instance.new("UIPadding")
 	NewNegativePadding.PaddingLeft = UDim.new(0, -6)
 	NewNegativePadding.Parent = TopbarScreenGui.TopBarFrame.LeftFrame
 end
 
-UIShelf.HorizontalAlignment = {
+Icon.Area = {
 	Left = 1,
 	Right = 2,
 }
@@ -178,8 +162,23 @@ local function UpdateTopbar()
 	)
 end
 
-function UIShelf.CreateIcon(properties: IconProps)
-	local self = setmetatable({ }, TopBarIconObject)
+local function ConflictingOrderCheck(icon: Frame)
+	for _, element in TopbarScreenGui:GetDescendants() do
+		if element:IsA("Frame") and element ~= icon and not table.find(DISALLOWED_NAMES, element.Name) then
+			if element.LayoutOrder == icon.LayoutOrder and element:GetAttribute("Area") == icon:GetAttribute("Area") then
+				error(`Cannot have two conflicting orders with spacers/icons! ({element.Name} and {icon.Name})`, 0)
+			end
+		end
+	end
+end
+
+function UIShelf.SetTopBarEnabled(enabled: boolean)
+	TopbarScreenGui.Enabled = enabled
+	UIShelf.TopBarEnabled = enabled
+end
+
+function Icon.new(properties: IconProps)
+	local self = setmetatable({ }, Icon)
 	local IconClone = TopbarIcon:Clone()
 	
 	table.insert(UIShelf.CreatedIcons, self)
@@ -203,32 +202,33 @@ function UIShelf.CreateIcon(properties: IconProps)
 	self.TextEnabled = if properties.Text then true else false
 	self.ImageEnabled = if properties.Image then true else false
 	
-	self.StateChanged = Signal() :: Signal.Signal<string>
-	self.Activated = Signal() :: Signal.Signal<Enum.UserInputType>
+	self.StateChanged = Signal() :: Signal.Signal<Enum.GuiState>
+	self.Activated = Signal() :: Signal.Signal<InputObject>
 	self.NoticeAdded = Signal() :: Signal.Signal<number>
-	self.NoticeRemoved = Signal() :: Signal.Signal<number>
+	self.NoticeRemoving = Signal() :: Signal.Signal<number?>
 
-	self.Notices = 0
 	self.NoticeCap = "99+"
 	self.NoticeCapNum = 99
 
-	self.CurrentState = "Default"
+	self.CurrentState = Enum.GuiState.Idle
+	self.TooltipEnabledNextHover = true
 
 	self._KeyCodeConnection = nil
 	self._NoticeConnection = nil
 	self._TooltipConnection = nil
 	self._GuiBindConnection = nil
 	self._PositionConnection = nil
+	self._MouseUpConnection = nil -- guistate isn't sufficient enough to replace this
 	
 	if type(properties.Image) == "number" then
 		properties.Image = `rbxassetid://{properties.Image}`
 	end
 
 	if properties.Order <= 0 then
-		error("Order cannot be less than 0")
+		error("Order cannot be less than 0", 0)
 	end
 
-	if properties.Area == UIShelf.HorizontalAlignment.Right then
+	if properties.Area == Icon.Area.Right then
 		properties.Order = -properties.Order
 	end
 
@@ -237,33 +237,30 @@ function UIShelf.CreateIcon(properties: IconProps)
 	end
 
 	IconBackground.Activated:Connect(function(inputObject)
-		self.Activated:Fire(inputObject.UserInputType)
+		self.Activated:Fire(inputObject)
 	end)
 	
 	self:SetText(properties.Text, properties.Font)
 	self:SetImage(properties.Image)
 
-	for connection, state in EVENTS_FOR_CONNECTION_ICON :: any do
-		IconBackground[connection]:Connect(function()
-			self:UpdateStateOverlay(state)
-		end)
-	end
+	IconBackground:GetPropertyChangedSignal("GuiState"):Connect(function()
+		self:UpdateStateOverlay(IconBackground.GuiState)
 
-	self.StateChanged:Connect(function(newState)
 		if not self._Tooltip then
 			return
 		end
 
-		if newState == "MouseUpHovering" or newState ~= "Hovering" then
+		local CurrentState = IconBackground.GuiState
+
+		if CurrentState == Enum.GuiState.Idle then
+			self.TooltipEnabledNextHover = true
 			self:SetTooltipEnabled(false)
 			return
 		end
-
+		
 		task.wait(0.75)
 
-		local LatestState = self.CurrentState
-
-		if LatestState == "Hovering" and self._Tooltip then
+		if self.CurrentState == Enum.GuiState.Hover and self._Tooltip and self.TooltipEnabledNextHover then
 			self:SetTooltipEnabled(true)
 		end
 	end)
@@ -277,13 +274,16 @@ function UIShelf.CreateIcon(properties: IconProps)
 	end
 
 	if table.find(DISALLOWED_NAMES, properties.Name) then
-		error(`{properties.Name} is part of the reserved naming list`)
+		error(`{properties.Name} is part of the reserved naming list`, 0)
 	end
 
 	IconClone:SetAttribute("Notices", 0)
+	IconClone:SetAttribute("Area", properties.Area)
 
 	IconClone.Name = properties.Name
 	IconClone.LayoutOrder = properties.Order
+
+	ConflictingOrderCheck(self._Element)
 	
 	if properties.Image then
 		IconImage.Image = properties.Image
@@ -294,16 +294,11 @@ function UIShelf.CreateIcon(properties: IconProps)
 	return self
 end
 
-function UIShelf.SetTopBarEnabled(enabled: boolean)
-	TopbarScreenGui.Enabled = enabled
-	UIShelf.TopBarEnabled = enabled
-end
-
-function TopBarIconObject:SetIconEnabled(enabled: boolean)
+function Icon:SetIconEnabled(enabled: boolean)
 	self._Element.Visible = enabled
 end
 
-function TopBarIconObject:BindGuiObject(guiObject: GuiObject?)
+function Icon:BindGuiObject(guiObject: GuiObject?)
 	if not guiObject then
 		self._GuiBindConnection:Disconnect()
 		return
@@ -316,7 +311,7 @@ function TopBarIconObject:BindGuiObject(guiObject: GuiObject?)
 	end
 end
 
-function TopBarIconObject:SetText(text: string?, textFont: Enum.Font | Font?)
+function Icon:SetText(text: string?, textFont: Enum.Font | Font?)
 	local IconBackground = self._Element.Background
 	local IconText = IconBackground.Text
 	
@@ -351,7 +346,7 @@ function TopBarIconObject:SetText(text: string?, textFont: Enum.Font | Font?)
 	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 end
 
-function TopBarIconObject:SetImage(image: string | number?)
+function Icon:SetImage(image: string | number?)
 	local IconBackground = self._Element.Background
 	local IconText = IconBackground.Text
 	local IconImage = IconBackground.Icon
@@ -384,7 +379,7 @@ function TopBarIconObject:SetImage(image: string | number?)
 	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
 end
 
-function TopBarIconObject:SetTooltip(text: string?)
+function Icon:SetTooltip(text: string?)
 	if not text then
 		self._Tooltip:Destroy()
 		self._Tooltip = nil
@@ -432,7 +427,12 @@ function TopBarIconObject:SetTooltip(text: string?)
 
 	TooltipCaret.Position = UDim2.fromOffset(TOOLTIP_POSITION - IconTooltipElement.AbsolutePosition.X, 4)
 
-	if self.Area == UIShelf.HorizontalAlignment.Right and self._Element.LayoutOrder <= -1 then
+	self.MouseUpConnection = self._Element.Background.MouseButton1Up:Connect(function()
+		self:SetTooltipEnabled(false)
+		self.TooltipEnabledNextHover = false
+	end)
+
+	if self.Area == Icon.Area.Right and self._Element.LayoutOrder <= -1 then
 		TooltipCaret.Position = UDim2.fromOffset(
 			IconTooltipElement.Box.AbsoluteSize.X - 22, 4
 		)
@@ -455,7 +455,7 @@ function TopBarIconObject:SetTooltip(text: string?)
 	UpdateTopbar()
 end
 
-function TopBarIconObject:SetTooltipEnabled(enabled: boolean)
+function Icon:SetTooltipEnabled(enabled: boolean)
 	assert(self._Tooltip, "Icon must already have a tooltip set")
 
 	self._Tooltip:TweenPosition(
@@ -475,7 +475,7 @@ function TopBarIconObject:SetTooltipEnabled(enabled: boolean)
 	end
 end
 
-function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuItem({Name = "", Image = 0}))})
+function Icon:CreateMenu(menuContents: {typeof(Icon.CreateMenuItem({Name = "", Image = 0}))})
 	local TopBarIcon = self._Element
 	local MenuContainer = TopBarIcon.MenuContainer
 
@@ -513,17 +513,24 @@ function TopBarIconObject:CreateMenu(menuContents: {typeof(UIShelf.CreateMenuIte
 
 	MenuContainer.Position = UDim2.new(1, 0, 0, 54)
 	
-	if self.Area == UIShelf.HorizontalAlignment.Left then
+	if self.Area == Icon.Area.Left then
 		MenuContainer.Position = UDim2.fromOffset(0, 54)
 		MenuContainer.AnchorPoint = Vector2.new(0, 0)
 	end
 
 	self.Activated:Connect(function()
 		MenuContainer.Visible = not MenuContainer.Visible
+		if MenuContainer.Visible then
+			CurrentlyOpenMenu.Menu = MenuContainer :: any
+			CurrentlyOpenMenu.Button = self._Element :: any
+		else
+			CurrentlyOpenMenu.Menu = nil
+			CurrentlyOpenMenu.Button = nil
+		end
 	end)
 end
 
-function TopBarIconObject:UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
+function Icon:UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
 	for property, value in STATEOVERLAY_MENU_PROPERTIES[newState] do
 		if button[property] then
 			button[property] = value
@@ -531,7 +538,7 @@ function TopBarIconObject:UpdateStateOverlayMenu(newState: "Default" | "Hovering
 	end
 end
 
-function TopBarIconObject:UpdateStateOverlay(newState: "Default" | "Hovering" | "MouseDown" | "MouseUpHovering")
+function Icon:UpdateStateOverlay(newState: Enum.GuiState)
 	local IconBackground = self._Element:FindFirstChild("Background")
 	
 	if not IconBackground then
@@ -540,13 +547,13 @@ function TopBarIconObject:UpdateStateOverlay(newState: "Default" | "Hovering" | 
 
 	local IconStateOverlay = IconBackground.StateOverlayRound
 
-	if newState == "Hovering" and UserInputService.TouchEnabled then
+	if newState == Enum.GuiState.Press and UserInputService.TouchEnabled then
 		IconStateOverlay.Transparency = 0.7
 		IconStateOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 		return
 	end
 
-	for property, value in STATEOVERLAY_PROPERTIES[newState] do
+	for property, value in STATEOVERLAY_PROPERTIES[newState] :: {[Enum.GuiState]: {[string]: any}} do
 		IconStateOverlay[property] = value
 	end
 
@@ -554,19 +561,23 @@ function TopBarIconObject:UpdateStateOverlay(newState: "Default" | "Hovering" | 
 	self.StateChanged:Fire(newState)
 end
 
-function TopBarIconObject:SetImageRect(rectSize: Rect, rectOffset: Rect)
+function Icon:SetImageRect(rectSize: Rect, rectOffset: Rect)
 	local IconImage = self._Element.Background.Icon
 
 	IconImage.ImageRectOffset = rectOffset
 	IconImage.ImageRectSize = rectSize
 end
 
-function TopBarIconObject:AddIconNotices(notices: number?, noticeCap: number?)
+function Icon:GetIconNotices(): number
+	return self._Element:GetAttribute("Notices")
+end
+
+function Icon:AddIconNotices(notices: number?, noticeCap: number?)
 	noticeCap = noticeCap or 99
 	notices = notices or 1
 
 	if notices and notices <= 0 then
-		error("Cannot notify 0 notifications")
+		error("Cannot notify 0 notifications", 0)
 		return
 	end
 
@@ -598,7 +609,6 @@ function TopBarIconObject:AddIconNotices(notices: number?, noticeCap: number?)
 				BadgeContainer.Visible = true
 			elseif NewValue == 0 then
 				BadgeContainer.Visible = false
-				self.Notices = 0
 			end
 
 			if NewValue > noticeCap then
@@ -617,35 +627,30 @@ function TopBarIconObject:AddIconNotices(notices: number?, noticeCap: number?)
 	end
 
 	TopBarIcon:SetAttribute("Notices", TopBarIcon:GetAttribute("Notices") + notices)
-
 	self.NoticeAdded:Fire(TopBarIcon:GetAttribute("Notices"))
-	self.Notices += notices
 end
 
-function TopBarIconObject:RemoveIconNotices(notices: number?)
+function Icon:RemoveIconNotices(notices: number?)
 	local TopBarIcon = self._Element
 
+	self.NoticeRemoving:Fire(notices)
 	if not notices then
 		TopBarIcon:SetAttribute("Notices", 0)
-		self.Notices = 0
 		return
 	end
 
 	if notices <= 0 then
-		error("Cannot remove 0 notifications")
+		error("Cannot remove 0 notifications", 0)
 		return
 	end
 
 	TopBarIcon:SetAttribute(
 		"Notices",
-		TopBarIcon:GetAttribute("Notices")
-		- notices
+		TopBarIcon:GetAttribute("Notices") - notices
 	)
-
-	self.Notices -= notices
 end
 
-function TopBarIconObject:BindKeyCode(keyCode: Enum.KeyCode?)
+function Icon:BindKeyCode(keyCode: Enum.KeyCode?)
 	if not keyCode then
 		if self._Tooltip then
 			local HotKeyFrame = self._Tooltip.Box.Hotkeys
@@ -685,14 +690,14 @@ function TopBarIconObject:BindKeyCode(keyCode: Enum.KeyCode?)
 	end)
 end
 
-function TopBarIconObject:SetImageSize(imageSize: Vector2)
+function Icon:SetImageSize(imageSize: Vector2)
 	local TopBarIcon = self._Element
 	local TopBarIconImage = TopBarIcon.Background.Icon
 
 	TopBarIconImage.Size = UDim2.fromOffset(imageSize.X, imageSize.Y)
 end
 
-function TopBarIconObject:Destroy()
+function Icon:Destroy()
 	if self._KeyCodeConnection then
 		self._KeyCodeConnection:Disconnect()
 	end
@@ -714,12 +719,12 @@ function TopBarIconObject:Destroy()
 	setmetatable(self, nil)
 end
 
-function UIShelf.CreateSpacer(properties: SpacerProps, bypass: boolean?)
-	local self = setmetatable({ }, TopBarSpacerObject)
+function Spacer.new(properties: SpacerProps, bypass: boolean?)
+	local self = setmetatable({ }, Spacer)
 	local SpacerClone = TopbarSpacer:Clone()
 
 	if properties.Order <= 0 and not bypass then
-		error("Order cannot be less than 0")
+		error("Order cannot be less than 0", 0)
 	end
 
 	if properties.Area == 2 then
@@ -737,25 +742,27 @@ function UIShelf.CreateSpacer(properties: SpacerProps, bypass: boolean?)
 		SpacerClone.Parent = RightFrame
 	end
 
-	SpacerClone.Name = properties[1]
-	SpacerClone.LayoutOrder = properties[3]
+	SpacerClone.Name = properties.Name
+	SpacerClone.LayoutOrder = properties.Order
+
+	ConflictingOrderCheck(self._Element)
 
 	return self
 end
 
-function TopBarSpacerObject:SetSpacerEnabled(enabled: boolean)
+function Spacer:SetSpacerEnabled(enabled: boolean)
 	local TopBarSpacer = self._Element
 
 	TopBarSpacer.Visible = enabled
 end
 
-function TopBarSpacerObject:SetSpacerSize(size: number)
+function Spacer:SetSpacerSize(size: number)
 	local TopBarSpacer = self._Element
 
 	TopBarSpacer.Size = UDim2.fromOffset(size, TopBarSpacer.Size.Y.Offset)
 end
 
-function TopBarSpacerObject:Destroy()
+function Spacer:Destroy()
 	for _, value in self do
 		if typeof(value) == "Instance" then
 			value:Destroy()
@@ -768,7 +775,7 @@ function TopBarSpacerObject:Destroy()
 	setmetatable(self, nil)
 end
 
-function UIShelf.CreateMenuItem(properties: MenuItemProps)
+function Icon.CreateMenuItem(properties: MenuItemProps)
 	local MenuItemObject = { }
 
 	if type(properties.Image) == "number" then
@@ -806,8 +813,28 @@ RunService.Heartbeat:Connect(function()
 	SelectionImageObject.UIStroke.GradientChild.Rotation += 1
 end)
 
+UserInputService.InputBegan:Connect(function(input)
+	if not (CurrentlyOpenMenu.Button and CurrentlyOpenMenu.Menu) then
+		return
+	end
+
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
+		return
+	end
+	
+	local Position = input.Position
+	local GuiObjectsAtPosition = PlayerGui:GetGuiObjectsAtPosition(Position.X, Position.Y)
+	
+	if not (table.find(GuiObjectsAtPosition, CurrentlyOpenMenu.Button) or table.find(GuiObjectsAtPosition, CurrentlyOpenMenu.Menu)) then
+		CurrentlyOpenMenu.Menu.Visible = false
+	end
+end)
+
 -- // Actions
 
 UpdateTopbar()
 
-return UIShelf
+return {
+	Spacer = Spacer,
+	Icon = Icon,
+}

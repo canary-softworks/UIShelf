@@ -44,12 +44,12 @@ export default defineConfig({
 
     footer: {
       message: 'Built with VitePress',
-      copyright: 'Copyright © 2021 - 2023 Canary Development'
+      copyright: 'Copyright © 2021 - 2024 Canary Softworks'
     },
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/canary-development/UIShelf' },
-      { icon: 'discord', link: 'https://discord.gg/cwwcZtqJAt' },
+      { icon: 'discord', link: 'https://discord.com/invite/adBFYaeEpJ' },
     ]
   }
 })
