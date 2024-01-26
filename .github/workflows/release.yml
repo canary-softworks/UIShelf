@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Setup aftman
               uses: ok-nick/setup-aftman@v0.4.2
@@ -21,7 +21,7 @@ jobs:
 
             - name: Build standalone
               run: |
-                rojo build standalone.project.json --o build/standalone.rbxm
+                rojo build standalone.project.json --output build/standalone.rbxm
 
             - name: Create release
               id: create_release
@@ -30,6 +30,7 @@ jobs:
                 tag_name: ${{ github.ref }}
                 release_name: ${{ github.ref }}
                 draft: true
+                body_path: docs/changelog.md
               env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
