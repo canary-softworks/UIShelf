@@ -1,4 +1,4 @@
-name: Build/Release Version
+name: Build standalone version
 on:
     push:
         tags:
