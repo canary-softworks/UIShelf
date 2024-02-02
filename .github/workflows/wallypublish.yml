@@ -1,0 +1,20 @@
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish package to Wally
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Aftman
+        uses: ok-nick/setup-aftman@v0.4.2
+
+      - name: Publish
+        run: |
+          wally publish
+        env:
+          WALLY_AUTH: ${{ secrets.WALLY_AUTH_TOKEN }}

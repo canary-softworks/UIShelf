@@ -18,24 +18,23 @@ local UserInputService = game:GetService("UserInputService")
 
 assert(RunService:IsClient(), "UI can only be handled on the client")
 
-local UIElements = script.UIElements
 local CurrentCamera = workspace.CurrentCamera
 
 local Player = PlayerService.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
-local TopbarScreenGui = require(UIElements.TopBarApp):Clone()
-local TooltipScreenGui = require(UIElements.TooltipLayer):Clone()
+local TopbarScreenGui = require(script.TopBarApp):Clone()
+local TooltipScreenGui = require(script.TooltipLayer):Clone()
 local LeftFrame = TopbarScreenGui.TopBarFrame.LeftFrame
 local RightFrame = TopbarScreenGui.TopBarFrame.RightFrame
 
-local TopbarIconBadge = require(UIElements.Badge)
-local TopbarIcon = require(UIElements.Icon)
-local TopbarSpacer = require(UIElements.Spacer)
-local IconTooltip = require(UIElements.Tooltip)
-local MenuObject = require(UIElements.MenuObject)
-local SelectionImageObject = require(UIElements.SelectionImageObject)
-local MenuSelectionImageObject = require(UIElements.SelectionImageObjectMenu)
+local TopbarIconBadge = require(script.Badge)
+local TopbarIcon = require(script.Icon)
+local TopbarSpacer = require(script.Spacer)
+local IconTooltip = require(script.Tooltip)
+local MenuObject = require(script.MenuObject)
+local SelectionImageObject = require(script.SelectionImageObject)
+local MenuSelectionImageObject = require(script.SelectionImageObjectMenu)
 
 local Signal = require(script.Parent.Signal)
 
