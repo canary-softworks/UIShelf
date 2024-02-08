@@ -1,0 +1,3 @@
+# UIShelf
+
+UIShelf is a new built-in library that allows you to create top bar icons similar to the famous [Topbar Plus](https://devforum.roblox.com/t/topbarplus-v291-construct-intuitive-topbar-icons-customise-them-with-themes-dropdowns-captions-labels-and-much-more/1017485), but in a more simple way. There's no complex features or anything, all it does is mimic the topbar icons 1:1 and thats it. Though it also has some extra features like the ability to bind keycodes to activate it.

@@ -15,8 +15,8 @@ export default defineConfig({
       {
         text: 'Guides',
         items: [
-          { text: 'Install', link: '/start/installation' },
-          { text: 'Usage', link: '/tutorial/uishelf' },
+          { text: 'Install', link: '/installation' },
+          { text: 'Usage', link: '/guides/index' },
         ]
       },
 
@@ -27,8 +27,15 @@ export default defineConfig({
     sidebar: {
       '/api': [
         { text: 'UIShelf', link: '/api/index' },
-        { text: 'TopBarIconObject', link: '/api/topbarspacerobject' },
-        { text: 'TopBarSpacerObject', link: '/api/topbariconobject' },
+        { text: 'Icon', link: '/api/icon' },
+        { text: 'Spacer', link: '/api/spacer' },
+      ],
+      '/guides': [
+        { text: 'Prologue', link: '/guides/index' },
+        { text: 'Object Creation', link: '/guides/creation' },
+        { text: 'Input', link: '/guides/input' },
+        { text: 'Notices', link: '/guides/notices' },
+        { text: 'Tooltips', link: '/guides/tooltips' },
       ]
     },
 
@@ -39,7 +46,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/canary-development/UIShelf/edit/main/docs/:path'
+      pattern: 'https://github.com/canary-softworks/UIShelf/edit/main/docs/:path'
     },
 
     footer: {
