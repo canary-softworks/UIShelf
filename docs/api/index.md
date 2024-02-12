@@ -4,19 +4,11 @@ Allows you to create top bar icons that 1:1 with CoreGui.
 
 ## Properties
 
-### HorizontalAlignment <Badge type="info" text="Enum" />
+### Area <Badge type="info" text="Enum" />
 
 Just a shortcut for the area of an icon, useful if you forget.
 
-* **Enum**
-
----
-
-### CreatedIcons
-
-A table of every topbar icon created.
-
-* **{ [TopBarIconObject](/api/topbariconobject) }**
+* **number**
 
 ---
 
@@ -28,7 +20,7 @@ Whether or not the topbar is enabled for UIShelf.
 
 ## Functions
 
-### CreateIcon
+### Icon
 
 Creates a new topbar icon, with declared properties.
 
@@ -39,11 +31,11 @@ The properties to set on the icon
 
 **Returns**
 
-* **[TopBarIconObject](/api/topbariconobject)**
+* **[Icon](/api/icon)**
 
 ---
 
-### CreateSpacer
+### Spacer
 
 Creates a new topbar spacer, acts a spacer to other icons.
 
@@ -57,11 +49,11 @@ Allows you to bypass the order restrictions, should only be used internally
 
 **Returns**
 
-* **[TopBarSpacerObject](/api/topbarspacerobject)**
+* **[TopBarSpacerObject](/api/spacer)**
 
 ---
 
-### CreateMenuItem
+### MenuItem
 
 Creates a new menu item for use inside of a menu.
 
@@ -72,11 +64,11 @@ The properties to set on the spacer
 
 **Returns**
 
-* **[MenuItemObject](/api/menuitemobject)**
+* **[MenuItem](/api/menuitem)**
 
 ---
 
-### SetTopBarEnabled
+### SetTopBar
 
 Sets whether or not the top bar is enabled, only applies to UIShelf icons.
 

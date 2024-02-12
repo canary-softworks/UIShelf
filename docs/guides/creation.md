@@ -13,7 +13,7 @@ local Icon = UIShelf.CreateIcon({
 	Name = "MyFavoriteIcon",
 	Image = "rbxassetid://12515281752",
 	Order = 1,
-	Area = UIShelf.HorizontalAlignment.Left,
+	Area = UIShelf.Area.Left,
 })
 ```
 

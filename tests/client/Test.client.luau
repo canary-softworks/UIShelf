@@ -1,32 +1,31 @@
-local Icon = require(game:GetService("ReplicatedStorage").Packages.UIShelf).Icon
-local Spacer = require(game:GetService("ReplicatedStorage").Packages.UIShelf).Spacer
+local UIShelf = require(game:GetService("ReplicatedStorage").Packages.UIShelf)
 
-local Icon1 = Icon.new({
+local Icon1 = UIShelf.Icon({
 	Name = "Icon1",
 	Image = 12797061582,
 	Order = 1,
-	Area = Icon.Area.Left,
+	Area = UIShelf.Area.Left,
 })
 
-local Icon2 = Icon.new({
+local Icon2 = UIShelf.Icon({
 	Name = "Icon2",
 	Image = 12663166329,
 	Order = 1,
-	Area = Icon.Area.Right,
+	Area = UIShelf.Area.Right,
 })
 
-local Icon3 = Icon.new({
+local Icon3 = UIShelf.Icon({
 	Name = "Icon3",
 	Image = "rbxassetid://12515281752",
 	Order = 2,
-	Area = Icon.Area.Left,
+	Area = UIShelf.Area.Left,
 	Text = "Text Icon"
 })
 
-Icon.new({
+UIShelf.Icon({
 	Name = "Icon4",
 	Order = 3,
-	Area = Icon.Area.Left,
+	Area = UIShelf.Area.Left,
 	Text = "Creepy Text Icon 👻",
 	Font = Enum.Font.Creepster
 })
@@ -35,12 +34,12 @@ Icon3:SetTooltip("Tooltip w/ Keycode")
 Icon3:BindKeyCode(Enum.KeyCode.Q)
 Icon1:SetTooltip("Normal Tooltip")
 
-local Menu1 = Icon.CreateMenuItem({
+local Menu1 = UIShelf.MenuItem({
 	Name = "Item 1",
 	Image = "rbxassetid://14187970401"
 })
 
-local Menu2 = Icon.CreateMenuItem({
+local Menu2 = UIShelf.MenuItem({
 	Name = "Item 2",
 	Image = "rbxassetid://14187977869"
 })

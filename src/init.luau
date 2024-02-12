@@ -1,13 +1,11 @@
-local UIShelf = { }
-local Icon = { }
-local Spacer = { }
+local UIShelf = {}
+local Icon = {}
+local Spacer = {}
 
 -- // Variables
 
 Spacer.__index = Spacer
 Icon.__index = Icon
-
-UIShelf.CreatedIcons = { }
 UIShelf.TopBarEnabled = true
 
 local PlayerService = game:GetService("Players")
@@ -25,8 +23,10 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local TopbarScreenGui = require(script.TopBarApp):Clone()
 local TooltipScreenGui = require(script.TooltipLayer):Clone()
-local LeftFrame = TopbarScreenGui.TopBarFrame.LeftFrame
-local RightFrame = TopbarScreenGui.TopBarFrame.RightFrame
+
+local TopBarFrame = TopbarScreenGui:WaitForChild("TopBarFrame") :: Frame
+local LeftFrame = TopBarFrame:WaitForChild("LeftFrame") :: Frame
+local RightFrame = TopBarFrame:WaitForChild("RightFrame") :: Frame
 
 local TopbarIconBadge = require(script.Badge)
 local TopbarIcon = require(script.Icon)
@@ -118,20 +118,15 @@ end
 if BUTTON_OFFSET == 6 and INITIAL_TOPBAR_INSET.Y > 36 then
 	local NewNegativePadding = Instance.new("UIPadding")
 	NewNegativePadding.PaddingLeft = UDim.new(0, -6)
-	NewNegativePadding.Parent = TopbarScreenGui.TopBarFrame.LeftFrame
+	NewNegativePadding.Parent = LeftFrame
 end
-
-Icon.Area = {
-	Left = 1,
-	Right = 2,
-}
 
 TopbarScreenGui.Parent = PlayerGui
 TooltipScreenGui.Parent = PlayerGui
 
 -- // Types
 
-type IconProps = {
+type IconProperties = {
 	Name: string,
 	Image: string | number?,
 	Order: number,
@@ -140,13 +135,13 @@ type IconProps = {
 	Font: Font | Enum.Font?,
 }
 
-type SpacerProps = {
+type SpacerProperties = {
 	Name: string,
 	Order: number,
 	Area: number,
 }
 
-type MenuItemProps = {
+type MenuItemProperties = {
 	Name: string,
 	Image: string | number,
 }
@@ -156,8 +151,8 @@ type MenuItemProps = {
 local function UpdateTopbar()
 	local Inset = GuiService.TopbarInset
 
-	TopbarScreenGui.TopBarFrame.Size = UDim2.fromOffset(
-		Inset.Width, TopbarScreenGui.TopBarFrame.Size.Y.Offset
+	TopBarFrame.Size = UDim2.fromOffset(
+		Inset.Width, TopBarFrame.Size.Y.Offset
 	)
 end
 
@@ -171,19 +166,17 @@ local function ConflictingOrderCheck(icon: Frame)
 	end
 end
 
-function UIShelf.SetTopBarEnabled(enabled: boolean)
+local function SetTopbar(enabled: boolean)
 	TopbarScreenGui.Enabled = enabled
 	UIShelf.TopBarEnabled = enabled
 end
 
-function Icon.new(properties: IconProps)
+function Icon.new(properties: IconProperties)
 	local self = setmetatable({ }, Icon)
 	local IconClone = TopbarIcon:Clone()
-	
-	table.insert(UIShelf.CreatedIcons, self)
 
-	local IconBackground = IconClone.Background
-	local IconImage = IconBackground.Icon
+	local IconBackground = IconClone:WaitForChild("Background") :: ImageButton
+	local IconImage = IconBackground:WaitForChild("Icon") :: ImageLabel
 	
 	IconBackground.SelectionImageObject = SelectionImageObject
 
@@ -227,7 +220,7 @@ function Icon.new(properties: IconProps)
 		error("Order cannot be less than 0", 0)
 	end
 
-	if properties.Area == Icon.Area.Right then
+	if properties.Area == 2 then
 		properties.Order = -properties.Order
 	end
 
@@ -293,7 +286,7 @@ function Icon.new(properties: IconProps)
 	return self
 end
 
-function Icon:SetIconEnabled(enabled: boolean)
+function Icon:SetEnabled(enabled: boolean)
 	self._Element.Visible = enabled
 end
 
@@ -431,7 +424,7 @@ function Icon:SetTooltip(text: string?)
 		self.TooltipEnabledNextHover = false
 	end)
 
-	if self.Area == Icon.Area.Right and self._Element.LayoutOrder <= -1 then
+	if self.Area == 2 and self._Element.LayoutOrder <= -1 then
 		TooltipCaret.Position = UDim2.fromOffset(
 			IconTooltipElement.Box.AbsoluteSize.X - 22, 4
 		)
@@ -474,7 +467,7 @@ function Icon:SetTooltipEnabled(enabled: boolean)
 	end
 end
 
-function Icon:CreateMenu(menuContents: {typeof(Icon.CreateMenuItem({Name = "", Image = 0}))})
+function Icon:NewMenu(menuContents: {{[string]: any}})
 	local TopBarIcon = self._Element
 	local MenuContainer = TopBarIcon.MenuContainer
 
@@ -512,7 +505,7 @@ function Icon:CreateMenu(menuContents: {typeof(Icon.CreateMenuItem({Name = "", I
 
 	MenuContainer.Position = UDim2.new(1, 0, 0, 54)
 	
-	if self.Area == Icon.Area.Left then
+	if self.Area == 1 then
 		MenuContainer.Position = UDim2.fromOffset(0, 54)
 		MenuContainer.AnchorPoint = Vector2.new(0, 0)
 	end
@@ -567,11 +560,11 @@ function Icon:SetImageRect(rectSize: Rect, rectOffset: Rect)
 	IconImage.ImageRectSize = rectSize
 end
 
-function Icon:GetIconNotices(): number
+function Icon:GetNotices(): number
 	return self._Element:GetAttribute("Notices")
 end
 
-function Icon:AddIconNotices(notices: number?, noticeCap: number?)
+function Icon:AddNotices(notices: number?, noticeCap: number?)
 	noticeCap = noticeCap or 99
 	notices = notices or 1
 
@@ -629,7 +622,7 @@ function Icon:AddIconNotices(notices: number?, noticeCap: number?)
 	self.NoticeAdded:Fire(TopBarIcon:GetAttribute("Notices"))
 end
 
-function Icon:RemoveIconNotices(notices: number?)
+function Icon:RemoveNotices(notices: number?)
 	local TopBarIcon = self._Element
 
 	self.NoticeRemoving:Fire(notices)
@@ -714,15 +707,14 @@ function Icon:Destroy()
 		self[value] = nil
 	end
 
-	table.remove(UIShelf.CreatedIcons, table.find(UIShelf.CreatedIcons, self))
 	setmetatable(self, nil)
 end
 
-function Spacer.new(properties: SpacerProps, bypass: boolean?)
+function Spacer.new(properties: SpacerProperties)
 	local self = setmetatable({ }, Spacer)
 	local SpacerClone = TopbarSpacer:Clone()
 
-	if properties.Order <= 0 and not bypass then
+	if properties.Order <= 0 then
 		error("Order cannot be less than 0", 0)
 	end
 
@@ -749,13 +741,13 @@ function Spacer.new(properties: SpacerProps, bypass: boolean?)
 	return self
 end
 
-function Spacer:SetSpacerEnabled(enabled: boolean)
+function Spacer:SetEnabled(enabled: boolean)
 	local TopBarSpacer = self._Element
 
 	TopBarSpacer.Visible = enabled
 end
 
-function Spacer:SetSpacerSize(size: number)
+function Spacer:SetSize(size: number)
 	local TopBarSpacer = self._Element
 
 	TopBarSpacer.Size = UDim2.fromOffset(size, TopBarSpacer.Size.Y.Offset)
@@ -774,7 +766,7 @@ function Spacer:Destroy()
 	setmetatable(self, nil)
 end
 
-function Icon.CreateMenuItem(properties: MenuItemProps)
+function Icon.newMenuItem(properties: MenuItemProperties)
 	local MenuItemObject = { }
 
 	if type(properties.Image) == "number" then
@@ -834,6 +826,9 @@ end)
 UpdateTopbar()
 
 return {
-	Spacer = Spacer,
-	Icon = Icon,
+	Spacer = Spacer.new,
+	Icon = Icon.new,
+	MenuItem = Icon.newMenuItem,
+	SetTopbar = SetTopbar,
+	Area = {Left = 1, Right = 2},
 }

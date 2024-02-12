@@ -8,7 +8,7 @@ hero:
   actions:
     - theme: brand
       text: Documentation
-      link: /tutorial/uishelf
+      link: /guides/index
     - theme: alt
       text: API Reference
       link: /api/index

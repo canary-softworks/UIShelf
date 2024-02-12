@@ -1,4 +1,4 @@
-# TopBarIconObject
+# Icon
 
 A top bar icon.
 
@@ -32,7 +32,7 @@ The area of the icon. `1` is left and `2` is right.
 
 The current input state of the icon.
 
-* **string**
+* **[Enum.GuiState](https://create.roblox.com/docs/reference/engine/enums/GuiState)**
 
 ---
 
@@ -60,7 +60,7 @@ The amount of notices the icon actually has.
 
 ## Methods
 
-### AddIconNotices
+### AddNotices
 
 Adds notices to the parent topbar icon.
 
@@ -78,7 +78,7 @@ When to display a + sign after a set amount of notices, defaults to 99
 
 ---
 
-### RemoveIconNotices
+### RemoveNotices
 
 Removes notices that are active in the icon.
 
@@ -86,6 +86,21 @@ Removes notices that are active in the icon.
 
 * **notices:** `number?`\
 The amount of notices to remove, leave nil to remove all notices
+
+**Returns**
+
+* **void**
+
+---
+
+### NewMenu
+
+Creates a new menu, append [MenuItems](/api/menuitem) for each clickable button.
+
+**Parameters**
+
+* **menuContents:** `{ MenuItem }`\
+The list of menu items to be added to the menu
 
 **Returns**
 
@@ -101,6 +116,24 @@ Binds multiple key codes to activate the icons `Activated` event.
 
 * **keyCodes:** `{ Enum.KeyCode }?`\
 The key codes to listen to, if it is nil it will unbind all binded key codes
+
+**Returns**
+
+* **void**
+
+---
+
+### SetText
+
+Sets the text for the icon.
+
+**Parameters**
+
+* **text:** `string?`\
+The text to be added, leave `nil` to remove text
+
+* **textFont:** `Enum.Font | FontFace?`\
+The font face that should be applied to the text
 
 **Returns**
 
@@ -137,7 +170,7 @@ The size to set the image to
 
 ---
 
-### SetIconEnabled
+### SetEnabled
 
 Sets the status of the icon visibility.
 
@@ -247,11 +280,22 @@ The amount of notices added to the icon
 
 ---
 
+### NoticeRemoving
+
+Fires whenever a notice is about to be removed from the icon.
+
+**Parameters**
+
+* **removedNoticeCount:** `number?`\
+The amount that were removed, `nil` if all
+
+---
+
 ### StateChanged
 
 Fires whenever the state of the icon changes. For example: Hovering -> Default.
 
 **Parameters**
 
-* **newState:** `string`\
+* **newState:** `Enum.GuiState`\
 The latest state at the time of the event being fired

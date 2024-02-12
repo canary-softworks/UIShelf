@@ -1,4 +1,4 @@
-# TopBarSpacerObject
+# Spacer
 
 A top bar spacer, adds a single icon space.
 
@@ -28,7 +28,7 @@ The area of the spacer. `1` is left and `2` is right.
 
 ## Functions
 
-### SetSpacerEnabled
+### SetEnabled
 
 Sets whether or not the spacer should be enabled.
 
@@ -43,7 +43,7 @@ Whether or not the spacer should be enabled
 
 ---
 
-### SetSpacerSize
+### SetSize
 
 Sets the size of the spacer on the `X` scale.
 

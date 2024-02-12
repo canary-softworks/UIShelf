@@ -29,9 +29,9 @@ export default defineConfig({
         { text: 'UIShelf', link: '/api/index' },
         { text: 'Icon', link: '/api/icon' },
         { text: 'Spacer', link: '/api/spacer' },
+        { text: 'MenuItem', link: '/api/menuitem' },
       ],
       '/guides': [
-        { text: 'Prologue', link: '/guides/index' },
         { text: 'Object Creation', link: '/guides/creation' },
         { text: 'Input', link: '/guides/input' },
         { text: 'Notices', link: '/guides/notices' },
@@ -56,7 +56,7 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/canary-development/UIShelf' },
-      { icon: 'discord', link: 'https://discord.com/invite/adBFYaeEpJ' },
+      { icon: 'discord', link: 'https://discord.com/invite/cwwcZtqJAt' },
     ]
   }
 })

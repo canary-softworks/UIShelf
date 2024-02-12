@@ -8,16 +8,17 @@ This is the changelog which is changed every update, and we follow semver.
 
 ### Added
 
-* `Icon:SetText`
-* `Icon:SetImage`
+* Automatic workflow publish
 
 ### Improvements
 
-* Images and text are now optional, either or must be provided
+* Improved documentation quite a bit
+* Fixes many ongoing issues
+* Uses newer APIs to make code more efficient
 
 ### Removed
 
-* `Icon:SetProperties`
+* Redundant properties
 
 # 1.1.0
 
