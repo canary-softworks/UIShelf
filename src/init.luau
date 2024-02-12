@@ -46,7 +46,7 @@ local NOTICE_UI_MARGIN = 24
 local NOTICE_UI_MARGIN_24X24 = 0
 local DEFAULT_ICON_SIZE = 44
 
-local STATEOVERLAY_PROPERTIES = {
+local STATEOVERLAY_PROPERTIES: {[Enum.GuiState]: {any}} = {
 	[Enum.GuiState.Idle] = {
 		BackgroundTransparency = 1,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -61,26 +61,19 @@ local STATEOVERLAY_PROPERTIES = {
 	},
 }
 
-local STATEOVERLAY_MENU_PROPERTIES = {
-	Default = {
+local STATEOVERLAY_MENU_PROPERTIES: {[Enum.GuiState]: {any}} = {
+	[Enum.GuiState.Idle] = {
 		BackgroundTransparency = 1,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 	},
-	Hovering = {
+	[Enum.GuiState.Hover] = {
 		BackgroundTransparency = 0.9,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 	},
-	MouseDown = {
+	[Enum.GuiState.Press] = {
 		BackgroundTransparency = 0.7,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 	},
-}
-
-local EVENTS_FOR_CONNECTION_MENU = {
-	MouseButton1Up = "Hovering",
-	MouseButton1Down = "MouseDown",
-	MouseEnter = "Hovering",
-	MouseLeave = "Default",
 }
 
 local DISALLOWED_NAMES = {
@@ -171,7 +164,22 @@ local function SetTopbar(enabled: boolean)
 	UIShelf.TopBarEnabled = enabled
 end
 
-function Icon.new(properties: IconProperties)
+local function NewMenuItem(properties: MenuItemProperties)
+	local MenuItemObject = { }
+
+	if type(properties.Image) == "number" then
+		properties.Image = `rbxassetid://{properties.Image}`
+	end
+
+	MenuItemObject.Name = properties.Name
+	MenuItemObject.Image = properties.Image
+
+	MenuItemObject.Activated = Signal() :: Signal.Signal<>
+
+	return MenuItemObject
+end
+
+local function NewIcon(properties: IconProperties)
 	local self = setmetatable({ }, Icon)
 	local IconClone = TopbarIcon:Clone()
 
@@ -282,6 +290,37 @@ function Icon.new(properties: IconProperties)
 	end
 
 	self._Element.Size = UDim2.fromOffset(IconBackground.AbsoluteSize.X, 44)
+	
+	return self
+end
+
+function NewSpacer(properties: SpacerProperties)
+	local self = setmetatable({ }, Spacer)
+	local SpacerClone = TopbarSpacer:Clone()
+
+	if properties.Order <= 0 then
+		error("Order cannot be less than 0", 0)
+	end
+
+	if properties.Area == 2 then
+		properties.Order = -properties.Order
+	end
+
+	self._Element = SpacerClone
+	self.Name = properties.Name
+	self.Order = properties.Order
+	self.Area = properties.Area
+
+	if self.Area == 1 then
+		SpacerClone.Parent = LeftFrame
+	elseif self.Area == 2 then
+		SpacerClone.Parent = RightFrame
+	end
+
+	SpacerClone.Name = properties.Name
+	SpacerClone.LayoutOrder = properties.Order
+
+	ConflictingOrderCheck(self._Element)
 
 	return self
 end
@@ -462,8 +501,9 @@ function Icon:SetTooltipEnabled(enabled: boolean)
 		self._TooltipTweens[enabled]:Play()
 	else
 		self._TooltipTweens[enabled]:Play()
-		task.wait(0.15)
-		self._Tooltip.Visible = enabled
+		task.delay(0.15, function()
+			self._Tooltip.Visible = enabled
+		end)
 	end
 end
 
@@ -484,16 +524,14 @@ function Icon:NewMenu(menuContents: {{[string]: any}})
 		local MenuObjectLabel = MenuObjectClone.StyledTextLabel
 		local MenuObjectIcon = MenuObjectClone.IconHost.IntegrationIconFrame.IntegrationIcon
 
-		for connection, state in EVENTS_FOR_CONNECTION_MENU :: any do
-			MenuObjectClone[connection]:Connect(function()
-				if connection == "MouseButton1Up" then
-					MenuContainer.Visible = false
-					menuContents.Activated:Fire()
-				end
+		MenuObjectClone:GetPropertyChangedSignal("GuiState"):Connect(function()
+			self:UpdateStateOverlayMenu(MenuObjectClone.GuiState, MenuObjectClone)
+		end)
 
-				self:UpdateStateOverlayMenu(state, MenuObjectClone)
-			end)
-		end
+		MenuObjectClone.MouseButton1Up:Connect(function()
+			MenuContainer.Visible = false
+			menuContents.Activated:Fire()
+		end)
 
 		MenuObjectClone.Name = string.lower(menuContents.Name)
 		MenuObjectClone.SelectionImageObject = MenuSelectionImageObject
@@ -522,7 +560,7 @@ function Icon:NewMenu(menuContents: {{[string]: any}})
 	end)
 end
 
-function Icon:UpdateStateOverlayMenu(newState: "Default" | "Hovering" | "MouseDown", button: any)
+function Icon:UpdateStateOverlayMenu(newState: Enum.GuiState, button: any)
 	for property, value in STATEOVERLAY_MENU_PROPERTIES[newState] do
 		if button[property] then
 			button[property] = value
@@ -545,7 +583,7 @@ function Icon:UpdateStateOverlay(newState: Enum.GuiState)
 		return
 	end
 
-	for property, value in STATEOVERLAY_PROPERTIES[newState] :: {[Enum.GuiState]: {[string]: any}} do
+	for property, value in STATEOVERLAY_PROPERTIES[newState] do
 		IconStateOverlay[property] = value
 	end
 
@@ -710,37 +748,6 @@ function Icon:Destroy()
 	setmetatable(self, nil)
 end
 
-function Spacer.new(properties: SpacerProperties)
-	local self = setmetatable({ }, Spacer)
-	local SpacerClone = TopbarSpacer:Clone()
-
-	if properties.Order <= 0 then
-		error("Order cannot be less than 0", 0)
-	end
-
-	if properties.Area == 2 then
-		properties.Order = -properties.Order
-	end
-
-	self._Element = SpacerClone
-	self.Name = properties.Name
-	self.Order = properties.Order
-	self.Area = properties.Area
-
-	if self.Area == 1 then
-		SpacerClone.Parent = LeftFrame
-	elseif self.Area == 2 then
-		SpacerClone.Parent = RightFrame
-	end
-
-	SpacerClone.Name = properties.Name
-	SpacerClone.LayoutOrder = properties.Order
-
-	ConflictingOrderCheck(self._Element)
-
-	return self
-end
-
 function Spacer:SetEnabled(enabled: boolean)
 	local TopBarSpacer = self._Element
 
@@ -764,21 +771,6 @@ function Spacer:Destroy()
 	end
 
 	setmetatable(self, nil)
-end
-
-function Icon.newMenuItem(properties: MenuItemProperties)
-	local MenuItemObject = { }
-
-	if type(properties.Image) == "number" then
-		properties.Image = `rbxassetid://{properties.Image}`
-	end
-
-	MenuItemObject.Name = properties.Name
-	MenuItemObject.Image = properties.Image
-
-	MenuItemObject.Activated = Signal() :: Signal.Signal<>
-
-	return MenuItemObject
 end
 
 -- // Connections
@@ -826,9 +818,9 @@ end)
 UpdateTopbar()
 
 return {
-	Spacer = Spacer.new,
-	Icon = Icon.new,
-	MenuItem = Icon.newMenuItem,
+	Spacer = NewSpacer,
+	Icon = NewIcon,
+	MenuItem = NewMenuItem,
 	SetTopbar = SetTopbar,
 	Area = {Left = 1, Right = 2},
 }

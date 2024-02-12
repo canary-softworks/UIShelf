@@ -36,6 +36,7 @@ export default defineConfig({
         { text: 'Input', link: '/guides/input' },
         { text: 'Notices', link: '/guides/notices' },
         { text: 'Tooltips', link: '/guides/tooltips' },
+        { text: 'Menus', link: 'guides/menus' }
       ]
     },
 

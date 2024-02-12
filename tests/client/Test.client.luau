@@ -44,7 +44,7 @@ local Menu2 = UIShelf.MenuItem({
 	Image = "rbxassetid://14187977869"
 })
 
-Icon2:CreateMenu({
+Icon2:NewMenu({
 	Menu1,
 	Menu2
 })
@@ -56,8 +56,8 @@ Menu1.Activated:Connect(function()
 end)
 
 Icon3.Activated:Connect(function()
-	if Icon3:GetIconNotices() == 100 then
-		Icon3:RemoveIconNotices()
+	if Icon3:GetNotices() == 100 then
+		Icon3:RemoveNotices()
 	end
-	Icon3:AddIconNotices()
+	Icon3:AddNotices()
 end)

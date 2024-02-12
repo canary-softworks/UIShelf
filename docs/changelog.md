@@ -2,6 +2,8 @@
 
 This is the changelog which is changed every update, and we follow semver.
 
+---
+
 # 2.0.0
 
 ---
@@ -19,6 +21,8 @@ This is the changelog which is changed every update, and we follow semver.
 ### Removed
 
 * Redundant properties
+
+---
 
 # 1.1.0
 
