@@ -16,7 +16,7 @@ local Icon2 = UIShelf.Icon({
 
 local Icon3 = UIShelf.Icon({
 	Name = "Icon3",
-	Image = "rbxassetid://12515281752",
+	Image = "rbxassetid://12967451417",
 	Order = 2,
 	Area = UIShelf.Area.Left,
 	Text = "Text Icon"
@@ -55,9 +55,14 @@ Menu1.Activated:Connect(function()
 	print("Menu example!")
 end)
 
-Icon3.Activated:Connect(function()
-	if Icon3:GetNotices() == 100 then
-		Icon3:RemoveNotices()
+Icon1.Activated:Connect(function()
+	if Icon1:GetNotices() == 100 then
+		Icon1:RemoveNotices()
 	end
-	Icon3:AddNotices()
+	Icon1:AddNotices()
 end)
+
+while true do
+	task.wait(1)
+	Icon3:SetText(math.random(1,100))
+end
