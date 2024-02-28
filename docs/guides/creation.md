@@ -4,12 +4,12 @@ Creating an icon or spacer is rather simple, all it requires is a few arguments 
 
 ### Icons
 
-When inputting these into your table, they must be in correct order or the code will malfunction. The image can either be an id or a direct URI. The order is basically just the layout order, and will be correctly accomodated for depending on if it was placed on the left/right. The `Area` element decides which side the icon is on, `1` is the left side, while `2` is the right side. You can also use `UIShelf.HorizontalAlignment` if it's easier to remember.
+When inputting these into your table, they must be in correct order or the code will malfunction. The image can either be an id or a direct URI. The order is basically just the layout order, and will be correctly accomodated for depending on if it was placed on the left/right. The `Area` element decides which side the icon is on, `1` is the left side, while `2` is the right side. You can also use `UIShelf.Area` if it's easier to remember. Please do note that we do not support middle icons for UX reasons.
 
 If you're confused, here is an example of it layed out:
 
 ```lua
-local Icon = UIShelf.CreateIcon({
+local Icon = UIShelf.Icon({
 	Name = "MyFavoriteIcon",
 	Image = "rbxassetid://12515281752",
 	Order = 1,
@@ -26,7 +26,7 @@ A UIShelf spacer object is what it is says it is: *it's a spacer.* This allows y
 An example spacer, requires no other functions to run:
 
 ```lua
-local Spacer = UIShelf.CreateSpacer({
+local Spacer = UIShelf.Spacer({
 	Name = "MySpacer",
 	Order = 1,
 	Area = 1,

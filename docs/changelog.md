@@ -10,6 +10,23 @@ This is the changelog which is changed every update, and we follow semver.
 
 ### Added
 
+* You can now set whether the keybind shows up in a tooltip
+
+### Improvements
+
+* Menus now automatically scale based on largest text
+* General bug fixes
+
+### Removed
+
+* Nothing!
+
+# 2.0.0
+
+---
+
+### Added
+
 * Automatic workflow publish
 
 ### Improvements

@@ -9,5 +9,5 @@
 ### Wally
 
 1. Create a new Git project or open one
-2. Add `canary-development/uishelf@2.0.0` to your `wally.toml` file
+2. Add `canary-development/uishelf@2.1.0` to your `wally.toml` file
 3. Run `wally install` and UIShelf should be inside of your `/Packages` directory.

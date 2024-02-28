@@ -35,12 +35,12 @@ Icon3:BindKeyCode(Enum.KeyCode.Q)
 Icon1:SetTooltip("Normal Tooltip")
 
 local Menu1 = UIShelf.MenuItem({
-	Name = "Item 1",
+	Name = "A cute cat",
 	Image = "rbxassetid://14187970401"
 })
 
 local Menu2 = UIShelf.MenuItem({
-	Name = "Item 2",
+	Name = "An exquisite butterfly",
 	Image = "rbxassetid://14187977869"
 })
 
@@ -48,8 +48,6 @@ Icon2:NewMenu({
 	Menu1,
 	Menu2
 })
-
-Icon2:SetTooltip("Automatically Offsetted Tooltip")
 
 Menu1.Activated:Connect(function()
 	print("Menu example!")

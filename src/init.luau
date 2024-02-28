@@ -16,8 +16,6 @@ local UserInputService = game:GetService("UserInputService")
 
 assert(RunService:IsClient(), "UI can only be handled on the client")
 
-local CurrentCamera = workspace.CurrentCamera
-
 local Player = PlayerService.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
@@ -463,25 +461,12 @@ function Icon:SetTooltip(text: string?)
 		self.TooltipEnabledNextHover = false
 	end)
 
-	if self.Area == 2 and self._Element.LayoutOrder <= -1 then
-		TooltipCaret.Position = UDim2.fromOffset(
-			IconTooltipElement.Box.AbsoluteSize.X - 22, 4
-		)
-
-		IconTooltipElement.Position = UDim2.fromOffset(
-			CurrentCamera.ViewportSize.X - 8 - (IconTooltipElement.Box.AbsoluteSize.X / 2), 56
-		)
-		
-		UpdateTopbar()
-		return
-	end
-
 	self._PositionConnection = self._Element:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
 		IconTooltipElement.Position = UDim2.fromOffset(
 			TopBarIcon.AbsolutePosition.X + (TopBarIcon.AbsoluteSize.X / 2),
 		 	if IconTooltipElement.Visible then 60 else 56
 		)
-	end)
+	end) -- Still working on better tooltip technology
 
 	UpdateTopbar()
 end
@@ -652,7 +637,7 @@ function Icon:AddNotices(notices: number?, noticeCap: number?)
 			end
 			
 			Badge.Size = UDim2.fromOffset(BadgeText.TextBounds.X + NOTICE_UI_PADDING, 24)
-			Badge.Position = UDim2.new(1, BadgeText.TextBounds.X + NOTICE_UI_PADDING - NOTICE_UI_MARGIN, 0, 0)
+			Badge.Position = UDim2.new(1, BadgeText.TextBounds.X + NOTICE_UI_PADDING - NOTICE_UI_MARGIN, 0, 0) -- thanks to ChatGPT for doing all of my math homework
 		end)
 	end
 
@@ -680,7 +665,8 @@ function Icon:RemoveNotices(notices: number?)
 	)
 end
 
-function Icon:BindKeyCode(keyCode: Enum.KeyCode?)
+function Icon:BindKeyCode(keyCode: Enum.KeyCode?, showOnTooltip: boolean?)
+	showOnTooltip = if showOnTooltip == nil then true else showOnTooltip
 	if not keyCode then
 		if self._Tooltip then
 			local HotKeyFrame = self._Tooltip.Box.Hotkeys
@@ -697,7 +683,7 @@ function Icon:BindKeyCode(keyCode: Enum.KeyCode?)
 		return
 	end
 
-	if self._Tooltip then
+	if self._Tooltip and showOnTooltip then
 		local HotKeyFrame = self._Tooltip.Box.Hotkeys
 		local FirstHotKey = HotKeyFrame["1"]
 		local KeyCodeName = if KEYCODE_TRANSLATIONS[keyCode] then KEYCODE_TRANSLATIONS[keyCode] else keyCode.Name
@@ -774,16 +760,6 @@ function Spacer:Destroy()
 end
 
 -- // Connections
-
-GuiService.MenuOpened:Connect(function()
-	TopbarScreenGui.Enabled = false
-	TooltipScreenGui.Enabled = false
-end)
-
-GuiService.MenuClosed:Connect(function()
-	TopbarScreenGui.Enabled = UIShelf.TopBarEnabled
-	TooltipScreenGui.Enabled = UIShelf.TopBarEnabled
-end)
 
 GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(UpdateTopbar)
 

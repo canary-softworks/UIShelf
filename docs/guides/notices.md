@@ -10,7 +10,7 @@ The API to add notices takes two parameters;
 Here's an example of a single notice being added when the icon is clicked:
 
 ```lua
-local Icon = UIShelf.CreateIcon({
+local Icon = UIShelf.Icon({
 	Name = "MyFavoriteIcon",
 	Image = "rbxassetid://12515281752",
 	Order = 1,

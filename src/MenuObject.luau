@@ -1,5 +1,6 @@
 local MenuObject = Instance.new("ImageButton")
 MenuObject.Name = "MenuObject"
+MenuObject.AutomaticSize = Enum.AutomaticSize.X
 MenuObject.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MenuObject.BackgroundTransparency = 1
 MenuObject.BorderSizePixel = 0
@@ -15,6 +16,7 @@ UIListLayout.Parent = MenuObject
 
 local StyledTextLabel = Instance.new("TextLabel")
 StyledTextLabel.Name = "StyledTextLabel"
+StyledTextLabel.AutomaticSize = Enum.AutomaticSize.X
 StyledTextLabel.FontFace = Font.new(
 	"rbxasset://fonts/families/GothamSSm.json",
 	Enum.FontWeight.Medium,
@@ -24,10 +26,7 @@ StyledTextLabel.LineHeight = 1.4
 StyledTextLabel.RichText = true
 StyledTextLabel.Text = ""
 StyledTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StyledTextLabel.TextScaled = true
 StyledTextLabel.TextSize = 19
-StyledTextLabel.TextTruncate = Enum.TextTruncate.AtEnd
-StyledTextLabel.TextWrapped = true
 StyledTextLabel.TextXAlignment = Enum.TextXAlignment.Left
 StyledTextLabel.BackgroundTransparency = 1
 StyledTextLabel.Size = UDim2.fromOffset(101, 21)
@@ -43,7 +42,7 @@ StyledTextLabel.Parent = MenuObject
 local UIPadding = Instance.new("UIPadding")
 UIPadding.Name = "UIPadding"
 UIPadding.PaddingLeft = UDim.new(0, 24)
-UIPadding.PaddingRight = UDim.new(0, 8)
+UIPadding.PaddingRight = UDim.new(0, 24)
 UIPadding.Parent = MenuObject
 
 local IconHost = Instance.new("Frame")
