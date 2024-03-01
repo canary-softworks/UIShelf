@@ -94,23 +94,24 @@ local NOIMAGE_PADDING_SIZE_LEFT_UDIM,
 NOIMAGE_PADDING_SIZE_RIGHT_UDIM = UDim.new(0, 12), UDim.new(0, 12)
 
 local NOIMAGE_ICON_SIZE_UDIM = UDim2.fromOffset(0, DEFAULT_ICON_SIZE)
-
-local INITIAL_TOPBAR_INSET = GuiService:GetGuiInset()
-local BUTTON_OFFSET = INITIAL_TOPBAR_INSET.Y - (44 + 2)
-
 local CurrentlyOpenMenu = {Button = nil, Menu = nil}
 
-for _, object in TopbarScreenGui:GetDescendants() do
-	if object:IsA("UIListLayout") then
-		object.Padding = UDim.new(0, BUTTON_OFFSET)
+task.delay(3, function()
+	local INITIAL_TOPBAR_INSET = GuiService:GetGuiInset()
+	local BUTTON_OFFSET = INITIAL_TOPBAR_INSET.Y - 46
+	
+	for _, object in TopbarScreenGui:GetDescendants() do
+		if object:IsA("UIListLayout") then
+			object.Padding = UDim.new(0, BUTTON_OFFSET)
+		end
 	end
-end
-
-if BUTTON_OFFSET == 6 and INITIAL_TOPBAR_INSET.Y > 36 then
-	local NewNegativePadding = Instance.new("UIPadding")
-	NewNegativePadding.PaddingLeft = UDim.new(0, -6)
-	NewNegativePadding.Parent = LeftFrame
-end
+	
+	if BUTTON_OFFSET == 6 and INITIAL_TOPBAR_INSET.Y > 36 then
+		local NewNegativePadding = Instance.new("UIPadding")
+		NewNegativePadding.PaddingLeft = UDim.new(0, -6)
+		NewNegativePadding.Parent = LeftFrame
+	end
+end)
 
 TopbarScreenGui.Parent = PlayerGui
 TooltipScreenGui.Parent = PlayerGui
